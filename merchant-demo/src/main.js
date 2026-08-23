@@ -1,7 +1,9 @@
+const BACKEND_URL = import.meta.env.VITE_API_URL;
+
 const payButton = document.getElementById("pay-button");
 const statusElement = document.getElementById("status");
 
-const BACKEND_URL = "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 payButton.addEventListener("click", async () => {
   try {
@@ -14,15 +16,15 @@ payButton.addEventListener("click", async () => {
     );
 
     const response = await fetch(`${BACKEND_URL}/api/orders`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
         amount: 4999,
-        currency: "INR",
-      }),
-    });
+        currency: "INR"
+    })
+});
 
     const responseText = await response.text();
 
