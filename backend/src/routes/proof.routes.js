@@ -1,0 +1,1 @@
+const express=require('express'); const c=require('../controllers/proof.controller'); const {requireAuth}=require('../middleware/auth'); const r=express.Router(); r.use(requireAuth); r.get('/',c.get); r.post('/run',c.run); r.post('/mandate-failure',c.mandateFailure); module.exports=r;

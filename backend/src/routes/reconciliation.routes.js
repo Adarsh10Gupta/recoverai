@@ -1,0 +1,1 @@
+const express=require("express");const controller=require("../controllers/reconciliation.controller");const {requireAuth}=require("../middleware/auth");const r=express.Router();r.use(requireAuth);r.get("/:merchantOrderId",controller.reconcile);r.post("/:merchantOrderId/recover",controller.recover);module.exports=r;

@@ -1,0 +1,3 @@
+const db=require("../db/database");
+async function log({entityType,entityId,action,actor="system",metadata={},workspaceId=null}){let ws=workspaceId;if(!ws&&entityId){const table={ORDER:"orders",PAYMENT:"payments",INCIDENT:"incidents",RECOVERY_ACTION:"recovery_actions"}[entityType];if(table){const r=await db.query(`SELECT workspace_id FROM ${table} WHERE id=$1`,[entityId]);ws=r.rows[0]?.workspace_id||null;}}if(!ws){const r=await db.query(`SELECT id FROM workspaces ORDER BY created_at LIMIT 1`);ws=r.rows[0]?.id||null;}await db.query(`INSERT INTO audit_logs(workspace_id,entity_type,entity_id,action,actor,metadata) VALUES($1,$2,$3,$4,$5,$6)`,[ws,entityType,entityId||null,action,actor,metadata]);}
+module.exports={log};

@@ -1,0 +1,1 @@
+const express=require('express'); const c=require('../controllers/policy.controller'); const {requireAuth}=require('../middleware/auth'); const r=express.Router(); r.use(requireAuth); r.get('/',c.get); r.put('/',c.update); module.exports=r;

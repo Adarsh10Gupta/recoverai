@@ -1,0 +1,1 @@
+const express=require('express'); const c=require('../controllers/payment-link.controller'); const {requireAuth}=require('../middleware/auth'); const r=express.Router(); r.use(requireAuth); r.get('/',c.list); r.post('/incident/:incidentId/recover',c.createForIncident); module.exports=r;

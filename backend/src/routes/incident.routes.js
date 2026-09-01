@@ -1,0 +1,1 @@
+const express=require("express");const controller=require("../controllers/incident.controller");const {requireAuth}=require("../middleware/auth");const r=express.Router();r.use(requireAuth);r.get("/",controller.list);r.get("/:id",controller.get);r.post("/:id/recover",controller.recover);module.exports=r;

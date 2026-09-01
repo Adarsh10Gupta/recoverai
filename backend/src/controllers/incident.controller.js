@@ -1,0 +1,5 @@
+const incidentService=require("../services/incident.service");const recoveryService=require("../services/recovery.service");
+async function list(req,res){try{return res.json({success:true,incidents:await incidentService.listOpenIncidents(req.auth.workspaceId)})}catch(e){return res.status(500).json({success:false,message:"Failed to load incidents"})}}
+async function get(req,res){try{const incident=await incidentService.getIncident(req.params.id,req.auth.workspaceId);if(!incident)return res.status(404).json({success:false,message:"Incident not found"});return res.json({success:true,incident,recoveryActions:await recoveryService.listActions(req.params.id,req.auth.workspaceId)})}catch(e){return res.status(500).json({success:false,message:"Internal server error"})}}
+async function recover(req,res){try{return res.json(await recoveryService.recoverIncident(req.params.id,req.auth.workspaceId))}catch(e){return res.status(e.message==="Incident not found"?404:500).json({success:false,message:e.message})}}
+module.exports={list,get,recover};
