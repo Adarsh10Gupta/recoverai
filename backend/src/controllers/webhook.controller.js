@@ -91,47 +91,82 @@ async function handleRazorpayWebhook(req, res) {
     }
 
     const accountId =
-      payload.account_id ||
-      payload.account?.id ||
-      null;
+  payload.account_id ||
+  payload.account?.id ||
+  null;
 
-    let workspaceId = null;
-    let secret =
+let workspaceId = null;
+let secret = config.razorpayWebhookSecret;
+
+if (accountId) {
+  const connection =
+    await connectionService.findByAccountId(
+      accountId
+    );
+
+  if (connection) {
+    /*
+     * OAuth-connected merchant.
+     * Use the workspace-specific webhook secret.
+     */
+    secret = connection.webhookSecret;
+    workspaceId = connection.workspace_id;
+
+    if (!secret) {
+      console.error(
+        `[WEBHOOK] REJECTED event=${payload.event} eventId=${eventId} reason=connection_webhook_secret_missing workspace=${workspaceId}`
+      );
+
+      return res.status(500).json({
+        success: false,
+        message:
+          "Webhook secret is not configured for this connection",
+      });
+    }
+
+    console.log(
+      `[WEBHOOK] ACCOUNT_RESOLVED mode=oauth account=${accountId} workspace=${workspaceId}`
+    );
+  } else if (config.demoWorkspaceId) {
+    /*
+     * RecoverAI demo / legacy API credential mode.
+     *
+     * Razorpay includes account_id in the webhook,
+     * but the demo workspace intentionally does not
+     * require an OAuth connection.
+     *
+     * Signature verification below is still mandatory.
+     */
+    workspaceId =
+      config.demoWorkspaceId;
+
+    secret =
       config.razorpayWebhookSecret;
 
-    if (accountId) {
-      const connection =
-        await connectionService.findByAccountId(
-          accountId
-        );
+    console.log(
+      `[WEBHOOK] ACCOUNT_RESOLVED mode=demo account=${accountId} workspace=${workspaceId}`
+    );
+  } else {
+    console.warn(
+      `[WEBHOOK] REJECTED event=${payload.event} eventId=${eventId} reason=unknown_razorpay_account`
+    );
 
-      if (!connection) {
-        console.warn(
-          `[WEBHOOK] REJECTED event=${eventType} eventId=${eventId} reason=unknown_razorpay_account`
-        );
+    return res.status(404).json({
+      success: false,
+      message:
+        "Unknown Razorpay account",
+    });
+  }
+} else if (config.demoWorkspaceId) {
+  /*
+   * Legacy/demo webhook without account_id.
+   */
+  workspaceId =
+    config.demoWorkspaceId;
 
-        return res.status(404).json({
-          success: false,
-          message:
-            "Unknown Razorpay account",
-        });
-      }
-
-      secret = connection.webhookSecret;
-      workspaceId =
-        connection.workspace_id;
-
-      if (!secret) {
-        console.error(
-          `[WEBHOOK] REJECTED event=${eventType} eventId=${eventId} reason=connection_webhook_secret_missing workspace=${workspaceId}`
-        );
-
-        return res.status(500).json({
-          success: false,
-          message:
-            "Webhook secret is not configured for this connection",
-        });
-      }
+  console.log(
+    `[WEBHOOK] ACCOUNT_RESOLVED mode=demo workspace=${workspaceId}`
+  );
     }
 
     if (
