@@ -1,4 +1,5 @@
 const db = require("../db/database");
+const auditService = require("./audit.service");
 
 async function createIncident({
   orderId = null,
@@ -49,10 +50,7 @@ async function createIncident({
   }
 
   /*
-   * Do NOT fall back to:
-   * SELECT id FROM workspaces ORDER BY created_at LIMIT 1
-   *
-   * That could leak Client A's incident into Client B's workspace.
+   * Do NOT fall back to another workspace.
    */
   if (!ws) {
     throw new Error(
@@ -112,7 +110,28 @@ async function createIncident({
     ]
   );
 
-  return result.rows[0];
+  const incident = result.rows[0];
+
+  /*
+   * Persist the actual detection event.
+   * This becomes the first real event in the incident timeline.
+   */
+  await auditService.log({
+    workspaceId: ws,
+    entityType: "INCIDENT",
+    entityId: incident.id,
+    action: "INCIDENT_CREATED",
+    actor: "system",
+    metadata: {
+      incidentId: incident.id,
+      type: incident.type,
+      severity: incident.severity,
+      orderId: incident.order_id,
+      paymentId: incident.payment_id,
+    },
+  });
+
+  return incident;
 }
 
 async function listOpenIncidents(workspaceId) {
@@ -182,7 +201,23 @@ async function resolveIncident(id, workspaceId) {
     [id, workspaceId]
   );
 
-  return result.rows[0] || null;
+  const incident = result.rows[0] || null;
+
+  if (incident) {
+    await auditService.log({
+      workspaceId,
+      entityType: "INCIDENT",
+      entityId: incident.id,
+      action: "INCIDENT_RESOLVED",
+      actor: "system",
+      metadata: {
+        incidentId: incident.id,
+        type: incident.type,
+      },
+    });
+  }
+
+  return incident;
 }
 
 module.exports = {
