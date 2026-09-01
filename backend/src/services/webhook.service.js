@@ -692,12 +692,19 @@ async function processPendingEvents() {
     return false;
   }
 
+  console.log(
+    `[WEBHOOK] PROCESSING event=${event.event_type} eventId=${event.razorpay_event_id} workspace=${event.workspace_id || "demo"}`
+  );
+
   try {
     const result =
       await processEvent(event);
 
     await eventStore.markProcessed(
       event.razorpay_event_id
+    );
+        console.log(
+      `[WEBHOOK] PROCESSED event=${event.event_type} eventId=${event.razorpay_event_id}`
     );
 
     await auditService.log({
@@ -725,9 +732,8 @@ async function processPendingEvents() {
     });
   } catch (error) {
     console.error(
-      "Webhook worker error:",
-      error
-    );
+  `[WEBHOOK] PROCESSING_FAILED event=${event.event_type} eventId=${event.razorpay_event_id} attempts=${event.attempts} error=${error.message}`
+);
 
     const retryable =
       event.attempts <
