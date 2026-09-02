@@ -31,13 +31,13 @@ async function reconcileOrder(
 
   const razorpayOrder =
     await razorpayService.fetchOrder(
-      localOrder.razorpay_order_id,
+      localOrder.razorpayOrderId,
       accessToken
     );
 
   const payments =
     await razorpayService.fetchOrderPayments(
-      localOrder.razorpay_order_id,
+      localOrder.razorpayOrderId,
       accessToken
     );
 
@@ -48,12 +48,12 @@ async function reconcileOrder(
    */
   if (
     Number(razorpayOrder.amount) !==
-    Number(localOrder.amount_in_subunits)
+    Number(localOrder.amountInSubunits)
   ) {
     mismatches.push({
       type: "AMOUNT_MISMATCH",
       expected: Number(
-        localOrder.amount_in_subunits
+        localOrder.amountInSubunits
       ),
       actual: Number(razorpayOrder.amount),
     });
@@ -102,13 +102,13 @@ async function reconcileOrder(
      */
     if (
       Number(payment.amount) !==
-      Number(localOrder.amount_in_subunits)
+      Number(localOrder.amountInSubunits)
     ) {
       mismatches.push({
         type: "PAYMENT_AMOUNT_MISMATCH",
         paymentId: payment.id,
         expected: Number(
-          localOrder.amount_in_subunits
+          localOrder.amountInSubunits
         ),
         actual: Number(payment.amount),
       });
@@ -221,7 +221,7 @@ async function reconcileOrder(
     metadata: {
       merchantOrderId,
       razorpayOrderId:
-        localOrder.razorpay_order_id,
+        localOrder.razorpayOrderId,
       workspaceId,
       mismatchCount: mismatches.length,
     },

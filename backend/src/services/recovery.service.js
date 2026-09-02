@@ -216,7 +216,7 @@ async function recoverIncident(
         result =
           await reconciliationService
             .reconcileOrder(
-              localOrder.merchant_order_id,
+              localOrder.merchantOrderId,
               workspaceId
             );
 
