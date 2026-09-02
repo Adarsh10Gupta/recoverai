@@ -56,23 +56,25 @@ async function recoverIncident(
           : "INVESTIGATE_INCIDENT";
 
   const actionResult = await db.query(
-    `
-    INSERT INTO recovery_actions (
-      incident_id,
-      workspace_id,
-      action_type,
-      status,
-      attempt
-    )
-    VALUES ($1,$2,$3,'running',1)
-    RETURNING *
-    `,
-    [
-      incidentId,
-      workspaceId,
-      actionType,
-    ]
-  );
+  `
+  INSERT INTO recovery_actions (
+    incident_id,
+    workspace_id,
+    action_type,
+    status,
+    attempt,
+    order_id
+  )
+  VALUES ($1,$2,$3,'running',1,$4)
+  RETURNING *
+  `,
+  [
+    incidentId,
+    workspaceId,
+    actionType,
+    incident.order_id || null,
+  ]
+);
 
   const action = actionResult.rows[0];
 
