@@ -300,7 +300,7 @@ async function processEvent(event) {
     if (
       Number(payment.amount) !==
       Number(
-        localOrder.amount_in_subunits
+        localOrder.amountInSubunits
       )
     ) {
       await incidentService.createIncident({
@@ -324,7 +324,7 @@ async function processEvent(event) {
         expectedState: {
           amount:
             Number(
-              localOrder.amount_in_subunits
+              localOrder.amountInSubunits
             ),
         },
 
@@ -573,7 +573,7 @@ async function processEvent(event) {
     if (
       Number(razorpayOrder.amount) !==
       Number(
-        localOrder.amount_in_subunits
+        localOrder.amountInSubunits
       )
     ) {
       await incidentService.createIncident({
@@ -594,7 +594,7 @@ async function processEvent(event) {
         expectedState: {
           amount:
             Number(
-              localOrder.amount_in_subunits
+              localOrder.amountInSubunits
             ),
         },
 
