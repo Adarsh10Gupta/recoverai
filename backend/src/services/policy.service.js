@@ -26,7 +26,7 @@ async function checkActionAllowed(workspaceId, incident, score = 0) {
   const blockers = [];
   const attempts = await db.query(`SELECT COUNT(*)::int AS count FROM recovery_actions WHERE incident_id=$1 AND workspace_id=$2 AND status IN ('running','completed')`, [incident.id, workspaceId]);
   if (attempts.rows[0].count >= policy.max_retries) blockers.push(`Maximum retry/action limit reached (${policy.max_retries}).`);
-  const cooldown = await db.query(`SELECT created_at FROM recovery_actions WHERE incident_id=$1 AND workspace_id=$2 ORDER BY created_at DESC LIMIT 1`, [incident.id, workspaceId]);
+  const cooldown = await db.query(`SELECT created_at FROM recovery_actions WHERE incident_id=$1 AND workspace_id=$2 AND status IN ('running','completed') ORDER BY created_at DESC LIMIT 1`, [incident.id, workspaceId]);
   if (cooldown.rows[0] && Date.now() - new Date(cooldown.rows[0].created_at).getTime() < policy.cooldown_minutes * 60000) blockers.push(`Cooldown active for ${policy.cooldown_minutes} minutes.`);
   const amount = Number(incident.revenue_at_risk || 0) / 100;
   if (policy.human_approval_amount > 0 && amount > Number(policy.human_approval_amount)) blockers.push(`Human approval required above ₹${Number(policy.human_approval_amount).toLocaleString('en-IN')}.`);
