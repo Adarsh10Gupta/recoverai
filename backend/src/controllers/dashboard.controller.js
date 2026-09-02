@@ -12,7 +12,7 @@ async function summary(req,res){
   db.query(`SELECT COUNT(*)::int AS total FROM webhook_events WHERE workspace_id=$1`,[w])
  ]);
  const rate=rec.rows[0].total?Math.round(rec.rows[0].completed/rec.rows[0].total*100):100;
- const verified=await db.query(`SELECT COALESCE(SUM(i.revenue_at_risk),0)::bigint AS amount, COUNT(*)::int AS incidents FROM incidents i WHERE i.workspace_id=$1 AND i.status='resolved' AND EXISTS (SELECT 1 FROM recovery_actions ra WHERE ra.incident_id=i.id AND ra.workspace_id=$1 AND ra.status='completed' AND COALESCE((ra.result->>'resolved')::boolean,false)=true)`,[w]);
+ const verified=await db.query(`SELECT COALESCE(SUM(i.revenue_at_risk),0)::bigint AS amount, COUNT(*)::int AS incidents FROM incidents i WHERE i.workspace_id=$1 AND i.status='resolved' AND EXISTS (SELECT 1 FROM recovery_actions ra WHERE ra.incident_id=i.id AND ra.workspace_id=$1 AND ra.status='completed')`,[w]);
  res.json({success:true,summary:{incidents:inc.rows[0],payments:pay.rows[0],orders:ord.rows[0],recovery:{...rec.rows[0],rate},webhooks:events.rows[0],verifiedRecovered:{amount:Number(verified.rows[0].amount),incidents:verified.rows[0].incidents}}});
 }
 async function incidents(req,res){await intelligence.refreshWorkspace(req.auth.workspaceId);const r=await db.query(`SELECT i.*,o.merchant_order_id,o.razorpay_order_id FROM incidents i LEFT JOIN orders o ON o.id=i.order_id AND o.workspace_id=$1 WHERE i.workspace_id=$1 ORDER BY i.detected_at DESC LIMIT 100`,[req.auth.workspaceId]);res.json({success:true,incidents:r.rows});}

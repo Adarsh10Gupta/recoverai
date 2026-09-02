@@ -44,7 +44,7 @@ async function runBatch(workspaceId, options = {}) {
 
 async function getProof(workspaceId) {
   const batches = await db.query(`SELECT * FROM proof_batches WHERE workspace_id=$1 ORDER BY created_at DESC LIMIT 10`, [workspaceId]);
-  const actual = await db.query(`SELECT COALESCE(SUM(i.revenue_at_risk),0)::bigint AS recovered_amount, COUNT(*)::int AS recovered_incidents FROM incidents i WHERE i.workspace_id=$1 AND i.status='resolved' AND EXISTS (SELECT 1 FROM recovery_actions ra WHERE ra.incident_id=i.id AND ra.workspace_id=$1 AND ra.status='completed' AND COALESCE((ra.result->>'resolved')::boolean,false)=true)`, [workspaceId]);
+  const actual = await db.query(`SELECT COALESCE(SUM(i.revenue_at_risk),0)::bigint AS recovered_amount, COUNT(*)::int AS recovered_incidents FROM incidents i WHERE i.workspace_id=$1 AND i.status='resolved' AND EXISTS (SELECT 1 FROM recovery_actions ra WHERE ra.incident_id=i.id AND ra.workspace_id=$1 AND ra.status='completed')`, [workspaceId]);
   const atRisk = await db.query(`SELECT COALESCE(SUM(revenue_at_risk),0)::bigint AS at_risk, COUNT(*)::int AS incidents FROM incidents WHERE workspace_id=$1`, [workspaceId]);
   return { actualVerified:{recoveredAmount:Number(actual.rows[0].recovered_amount),incidents:actual.rows[0].recovered_incidents}, incidentUniverse:{atRisk:Number(atRisk.rows[0].at_risk),incidents:atRisk.rows[0].incidents}, batches:batches.rows };
 }
