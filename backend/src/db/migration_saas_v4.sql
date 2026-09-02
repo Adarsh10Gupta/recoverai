@@ -1,4 +1,9 @@
 -- RecoverAI v4.1: policy, payment-link recovery, abandonment detection and proof lab.
+ALTER TABLE recovery_actions
+ADD COLUMN IF NOT EXISTS order_id UUID REFERENCES orders(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_recovery_actions_order
+ON recovery_actions(order_id);
 
 CREATE TABLE IF NOT EXISTS recovery_policies (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
