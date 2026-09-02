@@ -2,7 +2,7 @@ const db = require("../db/database");
 
 /**
  * RecoverAI Recovery Intelligence v1.
- * This is a transparent, deterministic scoring model — not an LLM.
+ * This is a transparent, deterministic scoring model - not an LLM.
  * It gives operators an explainable baseline until a model provider is configured.
  */
 function scoreSignals({ incident, payment, order }) {
@@ -13,7 +13,7 @@ function scoreSignals({ incident, payment, order }) {
   if (incident.type === "PAYMENT_FAILED") {
     score = 58;
     reasons.push("The provider explicitly reported a failed payment.");
-    action = "Retry after failure window";
+    action = "Reconcile and verify payment state";
     if (payment?.error_code) {
       const code = String(payment.error_code).toLowerCase();
       if (/(timeout|network|gateway|server|processing)/.test(code)) {
@@ -23,7 +23,7 @@ function scoreSignals({ incident, payment, order }) {
       if (/(insufficient|fund|limit|declined|authentication)/.test(code)) {
         score -= 18;
         reasons.push("The provider error suggests a customer or authorization issue.");
-        action = "Customer recovery prompt";
+        action = "Reconcile and verify payment state";
       }
     } else {
       score += 5;

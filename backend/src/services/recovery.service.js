@@ -55,6 +55,21 @@ async function recoverIncident(
           ? "INVESTIGATE_UNMATCHED_PAYMENT"
           : "INVESTIGATE_INCIDENT";
 
+  await auditService.log({
+    workspaceId,
+    entityType: "INCIDENT",
+    entityId: incidentId,
+    action: "RECOVERY_DECIDED",
+    actor: "system",
+    metadata: {
+      score,
+      actionType,
+      policy: {
+        allowed: policyCheck.allowed,
+        blockers: policyCheck.blockers || []
+      }
+    }
+  });
   const actionResult = await db.query(
   `
   INSERT INTO recovery_actions (
@@ -271,27 +286,28 @@ async function recoverIncident(
       ]
     );
 
+    await auditService.log({
+      workspaceId,
+      entityType: "INCIDENT",
+      entityId: incidentId,
+      action: resolved
+        ? "RECOVERY_COMPLETED"
+        : "RECOVERY_REQUIRES_REVIEW",
+      actor: "system",
+      metadata: {
+        recoveryActionId: action.id,
+        actionType,
+        resolved,
+        workspaceId,
+      },
+    });
+
     if (resolved) {
       await incidentService.resolveIncident(
         incidentId,
         workspaceId
       );
     }
-
-    await auditService.log({
-      entityType: "INCIDENT",
-      entityId: incidentId,
-      action: resolved
-        ? "RECOVERY_COMPLETED"
-        : "RECOVERY_REQUIRES_REVIEW",
-      metadata: {
-        recoveryActionId:
-          action.id,
-        actionType,
-        resolved,
-        workspaceId,
-      },
-    });
 
     return {
       success: true,
