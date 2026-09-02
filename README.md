@@ -1,135 +1,452 @@
-# RecoverAI v4 — Payment Reliability & Recovery Platform
+# RecoverAI
 
-RecoverAI is a multi-tenant payment reliability control plane for businesses using Razorpay. A merchant creates a private workspace and authorizes RecoverAI to monitor its Razorpay account. RecoverAI accepts signed provider webhooks, persists every event, maps events to the merchant's orders and payments, reconciles provider state against local state, detects incidents, estimates revenue at risk, scores recovery opportunities, recommends a next action, and records every recovery step in an audit trail. The v4 release adds a transparent Recovery Intelligence engine and controlled automation: high-confidence, non-customer-charging reconciliation can run automatically when a workspace owner enables the rule. Customer data is workspace-scoped server-side so one merchant cannot read another merchant's incidents, payments, orders or audit history.
+> **Payment reliability & recovery control plane for merchants**
 
-## v4 includes
+RecoverAI is a multi-tenant payment operations platform that helps
+merchants detect payment failures and checkout abandonment, understand
+recovery opportunities, automate recovery actions, and maintain an
+auditable evidence trail.
 
-### SaaS / privacy
-- Signup and login with bcrypt password hashing and JWT sessions.
-- Private workspace per customer.
-- Workspace-scoped dashboard, incidents, payments, orders, recovery actions and audit logs.
-- Server-side Razorpay OAuth tokens encrypted with AES-GCM.
-- OAuth state hashing, expiration and one-time consumption.
-- Provider webhooks mapped by Razorpay account ID.
+### 🚀 Live Demo
 
-### Payment reliability
-- Signed Razorpay webhook intake.
-- Replay-window validation.
-- Idempotent webhook storage.
-- Background webhook worker with retry/dead-letter states.
-- Order/payment reconciliation.
-- Incident creation for failed payments, state mismatches, amount/currency mismatches and unmatched provider objects.
-- Traceable recovery actions.
+**Try RecoverAI:** https://recoverai.pages.dev/
 
-### Recovery Intelligence
-- Explainable recovery score (0–100).
-- Revenue-at-risk estimate.
-- Recommended action.
-- Confidence level.
-- Reason/explanation shown to the operator.
-- Priority queue sorted by recovery score and value.
+**GitHub:** https://github.com/Adarsh10Gupta/recoverai
 
-The current intelligence engine is deliberately deterministic and explainable. It is a production-safe baseline rather than a claim that an LLM is being used. A model provider can be added later behind the same service boundary.
+### 🔐 Demo Access
 
-### Controlled automation
-- Workspace-level automation setting.
-- Safe reconciliation rule.
-- Minimum score threshold.
-- Explicit owner opt-in.
-- No payment retry/charge is triggered by the automation rule.
-- Automated actions are persisted in `automation_runs` and the audit log.
-- Duplicate runs are suppressed for a short safety window.
+Use the seeded demo workspace:
 
-### Frontend
-- New production-style fintech console.
-- Structured navigation with labeled sections.
-- Responsive mobile drawer.
-- Large readable typography.
-- Geist/Geist Mono design direction.
-- Motion-based entrance and hover animations.
-- Reduced-motion support.
-- Dashboard, incidents, incident detail, payments, orders, intelligence, automation, audit and settings pages.
+| Field     | Value                  |
+|-----------|------------------------|
+| Email     | `demo@recoverai.local` |
+| Password  | `RecoverAI@2026`       |
+| Workspace | `RecoverAI Demo`       |
 
-## Run locally
+> This account is intended only for the public demo environment. Do not
+> reuse the password for any real service.
+
+------------------------------------------------------------------------
+
+## What RecoverAI Does
+
+RecoverAI treats payment recovery as an operational workflow rather than
+a single failed-payment event.
+
+It connects:
+
+**Payment event → Incident → Recovery intelligence → Recovery action →
+Verification → Audit evidence**
+
+The platform currently demonstrates:
+
+- Payment and order visibility
+- Failed-payment and checkout-abandonment incident detection
+- Recovery scoring and recovery intelligence
+- Recovery actions with cooldown protection
+- Verified recovery metrics
+- Proof Lab for recovery-evidence simulation
+- Recovery policies and automation settings
+- Audit/event history
+- Multi-tenant workspace isolation
+- Razorpay Test Mode integration
+- Production frontend deployment with a Render backend
+
+------------------------------------------------------------------------
+
+## 🎯 Suggested 2–3 Minute Demo
+
+If you are evaluating RecoverAI for the first time, this is the fastest
+path:
+
+### 1. Open the live demo
+
+Go to:
+
+https://recoverai.pages.dev/
+
+Log in using the demo credentials above.
+
+### 2. Start at the Dashboard
+
+Look at the operational KPIs:
+
+- Payment volume
+- Orders
+- Revenue at risk
+- Verified recovered revenue
+- Recovery rate
+- Open incidents
+
+The seeded demo contains both a successful payment and a failed payment
+recovery scenario.
+
+### 3. Open Incidents
+
+Open the resolved **PAYMENT FAILED** incident.
+
+Follow the timeline from:
+
+**Detection → Intelligence → Recovery action → Completion →
+Verification**
+
+Also notice the **CHECKOUT ABANDONED** incident that remains open,
+demonstrating that RecoverAI distinguishes unresolved opportunities from
+verified recovery.
+
+### 4. Explore Recovery Intelligence
+
+Review the recovery score, recommendation, and reasoning around the
+incident.
+
+### 5. Open Proof Lab
+
+Proof Lab shows how recovery evidence can be represented and verified.
+
+**Important:** Proof Lab is a synthetic simulation layer for
+demonstrating the evidence workflow. It should not be confused with a
+real-money transaction or an external settlement confirmation.
+
+### 6. Check Audit
+
+Use the Audit section to see the operational trail generated by the
+system.
+
+------------------------------------------------------------------------
+
+## 🧩 Core Product Areas
+
+| Area                      | Purpose                                              |
+|---------------------------|------------------------------------------------------|
+| **Dashboard**             | Executive view of payment health, risk, and recovery |
+| **Incidents**             | Detect and manage payment/checkout failure events    |
+| **Payments**              | Payment-level operational visibility                 |
+| **Orders**                | Merchant order and payment linkage                   |
+| **Recovery Intelligence** | Recovery scoring, recommendations, and reasoning     |
+| **Proof Lab**             | Recovery evidence and verification simulation        |
+| **Recovery Policy**       | Configure recovery behavior                          |
+| **Audit**                 | Review operational and recovery events               |
+| **Architecture**          | Understand the system’s major components             |
+
+------------------------------------------------------------------------
+
+## 🏗️ Architecture
+
+``` text
+                         ┌─────────────────────────┐
+                         │     Merchant / Judge     │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │   Cloudflare Pages      │
+                         │   Vite Frontend         │
+                         └────────────┬────────────┘
+                                      │ HTTPS API
+                                      ▼
+                         ┌─────────────────────────┐
+                         │   Render Backend        │
+                         │   Node.js / Express     │
+                         └──────┬──────────┬───────┘
+                                │          │
+                       ┌────────▼───┐  ┌──▼─────────────┐
+                       │ PostgreSQL │  │ Razorpay Test  │
+                       │            │  │ Mode           │
+                       └────────────┘  └────────────────┘
+```
+
+### Production endpoints
+
+- Frontend: `https://recoverai.pages.dev/`
+- Backend API: `https://recoverai-backend-ix5o.onrender.com/`
+- Razorpay webhook endpoint:
+  `https://recoverai-backend-ix5o.onrender.com/api/webhooks/razorpay`
+
+------------------------------------------------------------------------
+
+## 💳 Razorpay Test Mode
+
+RecoverAI integrates with Razorpay Test Mode for provider-backed payment
+event testing.
+
+**Test Mode does not move real money.**
+
+The demo can therefore demonstrate payment lifecycle handling without
+charging a real card/account.
+
+The Razorpay integration is used for provider-backed events such as:
+
+- `payment.authorized`
+- `payment.failed`
+- `payment.captured`
+- `order.paid`
+- `payment_link.paid`
+- `payment_link.expired`
+- `payment_link.cancelled`
+
+### Test Mode vs Proof Lab
+
+These are intentionally different:
+
+| Layer                  | Meaning                                                   |
+|------------------------|-----------------------------------------------------------|
+| **Razorpay Test Mode** | Provider-backed simulated payment lifecycle               |
+| **Proof Lab**          | Synthetic demonstration of recovery evidence/verification |
+
+This distinction is important when evaluating the project.
+
+------------------------------------------------------------------------
+
+## 🔄 Recovery Workflow
+
+``` text
+Provider / checkout event
+          │
+          ▼
+     Webhook ingestion
+          │
+          ▼
+      Order / payment
+        reconciliation
+          │
+          ▼
+       Incident
+      detection
+          │
+          ▼
+ Recovery intelligence
+  + recovery scoring
+          │
+          ▼
+   Recovery policy
+          │
+          ▼
+    Recovery action
+          │
+          ▼
+       Verification
+          │
+          ▼
+   Verified recovery
+          │
+          ▼
+      Audit trail
+```
+
+------------------------------------------------------------------------
+
+## 🔒 Multi-Tenant Design
+
+RecoverAI is designed around workspace isolation.
+
+Operational records are associated with a workspace, and API operations
+scope data through the authenticated workspace context.
+
+The demo workspace is isolated from other workspace data.
+
+------------------------------------------------------------------------
+
+## 🛠️ Local Development
+
+### Prerequisites
+
+- Node.js
+- npm
+- PostgreSQL
+- Razorpay Test Mode credentials if testing provider-backed flows
+
+### Clone
+
+``` bash
+git clone https://github.com/Adarsh10Gupta/recoverai.git
+cd recoverai
+```
 
 ### Backend
 
-```powershell
-cd D:\RecoverAI-v4\backend
+``` bash
+cd backend
 npm install
-npm run migrate
-npm run dev
 ```
 
-The backend runs on `http://localhost:5000`.
+Create a local `.env` containing your development configuration.
+
+Example:
+
+``` env
+PORT=5000
+FRONTEND_ORIGIN=http://localhost:5174
+
+DATABASE_URL=your_local_database_url
+
+JWT_SECRET=your_local_jwt_secret
+
+RAZORPAY_KEY_ID=your_test_key_id
+RAZORPAY_KEY_SECRET=your_test_key_secret
+RAZORPAY_WEBHOOK_SECRET=your_test_webhook_secret
+```
+
+Start the backend:
+
+``` bash
+npm run dev
+```
 
 ### Frontend
 
-```powershell
-cd D:\RecoverAI-v4\merchant-demo
+Open another terminal:
+
+``` bash
+cd merchant-demo
 npm install
+```
+
+Create `.env.local`:
+
+``` env
+VITE_API_URL=http://localhost:5000
+VITE_RAZORPAY_KEY_ID=your_test_public_key
+```
+
+Start Vite:
+
+``` bash
 npm run dev
 ```
 
-Vite normally starts at `http://localhost:5173`.
+The local frontend runs on the Vite development port shown in the
+terminal.
 
-Copy `.env.example` to `.env` for the backend and configure your existing values.
+> Never commit `.env`, `.env.local`, database credentials, JWT secrets,
+> Razorpay private keys, or webhook secrets.
 
-For the frontend:
+------------------------------------------------------------------------
 
-```text
-VITE_API_URL=http://localhost:5000
-VITE_RAZORPAY_KEY_ID=your_test_key_id
+## ☁️ Deployment
+
+The production demo uses:
+
+- **Cloudflare Pages** for the Vite frontend
+- **Render** for the Node.js backend
+- **Render PostgreSQL** for persistent data
+- **Razorpay Test Mode** for provider-backed payment testing
+
+The Cloudflare Pages project is connected to the GitHub repository, so
+pushes to the production branch can trigger a new frontend deployment.
+
+Production frontend configuration:
+
+``` env
+VITE_API_URL=https://recoverai-backend-ix5o.onrender.com
+VITE_RAZORPAY_KEY_ID=your_test_public_key
 ```
 
-Do not upload `.env` files, API secrets, OAuth client secrets or encryption keys.
+Only public frontend configuration belongs in the frontend build
+environment. Backend secrets remain on the backend platform.
 
-## Database migration
+------------------------------------------------------------------------
 
-Run:
+## 📁 Repository Structure
 
-```powershell
-npm run migrate
+``` text
+recoverai/
+├── backend/
+│   └── src/
+│       ├── controllers/
+│       ├── routes/
+│       ├── services/
+│       ├── stores/
+│       └── ...
+│
+├── merchant-demo/
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── ...
+│
+└── README.md
 ```
 
-The migration runner applies:
-- `schema.sql`
-- `migration.sql`
-- `migration_saas.sql`
-- `migration_saas_v2.sql`
-- `migration_saas_v3.sql`
+------------------------------------------------------------------------
 
-The v3 migration adds recovery intelligence fields and automation tables.
+## 🧪 Demo Scenario
 
-## Razorpay partner/OAuth setup
+The seeded demo workspace is intentionally prepared to show both sides
+of the recovery problem:
 
-Once Razorpay approves/registers the Technology Partner application, configure:
+### Successful payment
 
-```text
-RAZORPAY_OAUTH_CLIENT_ID=
-RAZORPAY_OAUTH_CLIENT_SECRET=
-RAZORPAY_OAUTH_REDIRECT_URI=https://YOUR_PUBLIC_BACKEND/api/razorpay/oauth/callback
-RAZORPAY_OAUTH_MODE=test
-PUBLIC_WEBHOOK_URL=https://YOUR_PUBLIC_BACKEND/api/webhooks/razorpay
-```
+A successful payment demonstrates the normal payment/order lifecycle.
 
-The merchant then uses **Settings → Connect Razorpay**. The browser is redirected to Razorpay for authorization; the access/refresh tokens are returned to the backend and encrypted at rest. The browser never receives the provider access token.
+### Failed payment
 
-## Important production note
+A failed payment produces an incident that can move through the recovery
+workflow and become a verified recovery.
 
-The current public `/api/orders` endpoints exist for the sandbox/demo checkout flow and legacy integration. Before exposing customer-facing order creation publicly, put that flow behind the appropriate authenticated merchant/session boundary or separate it into a dedicated demo route. The SaaS dashboard APIs are already protected with JWT + workspace scoping.
+### Checkout abandonment
 
-## Product flow
+An open checkout-abandonment incident demonstrates that not every
+detected opportunity is automatically marked as recovered.
 
-Detect → Decide → Recover → Verify
+This gives evaluators a simple way to see the difference between:
 
-1. Detect a provider event.
-2. Verify signature and persist it idempotently.
-3. Match it to the correct workspace/order/payment.
-4. Reconcile provider state with local state.
-5. Create an incident when states disagree.
-6. Score the incident and estimate revenue at risk.
-7. Recommend the safest recovery action.
-8. Let the operator recover manually or enable safe automation.
-9. Verify the resulting provider/local state.
-10. Persist the recovery action and audit trail.
+**payment success → failure detection → recovery → verification**
+
+rather than only viewing static dashboard numbers.
+
+------------------------------------------------------------------------
+
+## ⚠️ Demo & Security Notes
+
+This repository contains a demonstration application.
+
+- Razorpay Test Mode is used for simulated provider transactions.
+- No real-money payment should be inferred from the demo.
+- Proof Lab contains synthetic evidence/simulation.
+- Public demo credentials are intentionally limited to the demo
+  workspace.
+- Never place production secrets in frontend environment variables.
+- Never commit private API credentials or database connection strings.
+
+------------------------------------------------------------------------
+
+## 🤝 Feedback
+
+If you are testing RecoverAI, useful feedback includes:
+
+1.  What was easiest to understand?
+2.  What was confusing?
+3.  Which screen communicated the product value best?
+4.  Where did you expect a different action?
+5.  What feature would make the product more useful to a merchant?
+6.  Did the recovery workflow make sense without explanation?
+
+For a student/buildathon evaluation, feedback on **clarity, usefulness,
+UX, technical depth, and realism of the recovery workflow** is
+especially valuable.
+
+------------------------------------------------------------------------
+
+## 📌 Project Status
+
+**Public demo:** Live
+
+**Frontend:** Cloudflare Pages
+
+**Backend:** Render
+
+**Database:** PostgreSQL
+
+**Payment provider:** Razorpay Test Mode
+
+**Primary goal:** Demonstrate an end-to-end payment reliability and
+recovery control plane with intelligence, automation, verification, and
+auditability.
+
+------------------------------------------------------------------------
+
+## Maintainer
+
+**Adarsh Gupta**
+
+GitHub: https://github.com/Adarsh10Gupta
